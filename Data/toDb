@@ -2,8 +2,8 @@ CREATE TABLE kot
 (
 	CITY varchar,
 	URL varchar,
-	PRICE int,
-	AREA int,
+	PRICE smallint,
+	AREA smallint,
 	LATITUDE double precision,
 	LONGITUDE double precision
 );
