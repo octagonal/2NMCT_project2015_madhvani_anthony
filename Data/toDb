@@ -1,0 +1,11 @@
+CREATE TABLE kot
+(
+	CITY varchar,
+	URL varchar,
+	PRICE int,
+	AREA int,
+	LATITUDE double precision,
+	LONGITUDE double precision
+);
+
+COPY kot FROM 'kot.csv' DELIMITER ';' CSV;
