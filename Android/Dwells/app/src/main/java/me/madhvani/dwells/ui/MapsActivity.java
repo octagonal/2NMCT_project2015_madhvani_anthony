@@ -2,13 +2,22 @@ package me.madhvani.dwells.ui;
 
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.util.List;
+
 import me.madhvani.dwells.R;
+import me.madhvani.dwells.api.KotService;
+import me.madhvani.dwells.model.Kot;
+import retrofit.Callback;
+import retrofit.RestAdapter;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 
 public class MapsActivity extends FragmentActivity {
 
@@ -19,6 +28,10 @@ public class MapsActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
+    }
+
+    void setMarkers(List<Kot> kots){
+
     }
 
     @Override
@@ -63,5 +76,27 @@ public class MapsActivity extends FragmentActivity {
      */
     private void setUpMap() {
         mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+        RestAdapter restAdapter = new RestAdapter.Builder()
+                .setEndpoint("http://madhvani.me/api")
+                .build();
+
+        KotService service = restAdapter.create(KotService.class);
+        service.getKotByCity("eq.gent", new Callback<List<Kot>>() {
+            @Override
+            public void success(List<Kot> kots, Response response) {
+                for (int i = 0; i < kots.size(); i++) {
+                    mMap.addMarker(
+                            new MarkerOptions().position(
+                                    new LatLng( kots.get(i).getLatitude(), kots.get(i).getLongitude() )
+                            )
+                    );
+                }
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+
+            }
+        });
     }
 }
