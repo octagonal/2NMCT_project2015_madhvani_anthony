@@ -1,8 +1,8 @@
 package me.madhvani.dwells.ui;
 
+import android.os.Build;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -11,10 +11,12 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.List;
 
+import me.madhvani.dwells.BuildConfig;
 import me.madhvani.dwells.R;
 import me.madhvani.dwells.api.KotService;
 import me.madhvani.dwells.model.Kot;
 import retrofit.Callback;
+import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -75,9 +77,16 @@ public class MapsActivity extends FragmentActivity {
      * This should only be called once and when we are sure that {@link #mMap} is not null.
      */
     private void setUpMap() {
-        mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+        RequestInterceptor requestInterceptor = new RequestInterceptor() {
+            @Override
+            public void intercept(RequestFacade request) {
+                request.addHeader("User-Agent", "Dwells/" + BuildConfig.VERSION_NAME + " (Android" + "; cd:" + Build.VERSION.CODENAME + "; si:" + Build.VERSION.SDK_INT + "; rv:" + Build.VERSION.RELEASE + ")");
+            }
+        };
+
         RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint("http://madhvani.me/api")
+                .setEndpoint(me.madhvani.dwells.api.Constants.ENDPOINT)
+                .setRequestInterceptor(requestInterceptor)
                 .build();
 
         KotService service = restAdapter.create(KotService.class);
