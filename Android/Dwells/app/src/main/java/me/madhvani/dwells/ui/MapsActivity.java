@@ -4,8 +4,10 @@ import android.os.Build;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -22,6 +24,12 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 public class MapsActivity extends FragmentActivity {
+
+    //TODO: Zet steden LatLng's in aparte struct
+    private static final LatLng GENT = new LatLng(51.0878316,3.7237548);
+    private static final String CITY_QUERY = "eq.gent";
+    //TODO: Zet in Constants klasse, bewaar in lokale storage
+    private static final String USER_AGENT = "Dwells/" + BuildConfig.VERSION_NAME + " (Android" + "; cd:" + Build.VERSION.CODENAME + "; si:" + Build.VERSION.SDK_INT + "; rv:" + Build.VERSION.RELEASE + ")";
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
 
@@ -77,10 +85,18 @@ public class MapsActivity extends FragmentActivity {
      * This should only be called once and when we are sure that {@link #mMap} is not null.
      */
     private void setUpMap() {
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(GENT)
+                .zoom(10)                   // Sets the zoom
+                .bearing(0)                // Sets the orientation of the camera to east
+                .tilt(0)                   // Sets the tilt of the camera to 0 degrees
+                .build();                   // Creates a CameraPosition from the builder
+        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 1000, null);
+
         RequestInterceptor requestInterceptor = new RequestInterceptor() {
             @Override
             public void intercept(RequestFacade request) {
-                request.addHeader("User-Agent", "Dwells/" + BuildConfig.VERSION_NAME + " (Android" + "; cd:" + Build.VERSION.CODENAME + "; si:" + Build.VERSION.SDK_INT + "; rv:" + Build.VERSION.RELEASE + ")");
+                request.addHeader("User-Agent", USER_AGENT);
             }
         };
 
@@ -90,7 +106,7 @@ public class MapsActivity extends FragmentActivity {
                 .build();
 
         KotService service = restAdapter.create(KotService.class);
-        service.getKotByCity("eq.gent", new Callback<List<Kot>>() {
+        service.getKotByCity(CITY_QUERY, new Callback<List<Kot>>() {
             @Override
             public void success(List<Kot> kots, Response response) {
                 for (int i = 0; i < kots.size(); i++) {
