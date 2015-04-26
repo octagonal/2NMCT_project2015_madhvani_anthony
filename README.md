@@ -11,6 +11,9 @@ Search for a location by proximity to campus
 
 Filter by price
 
-## Screenshots
+## Attribution
 
-![Main map view](http://i.imgur.com/UU9cD9M.png "The main map view")
+### Kot Icon
+
+The "Kot" icon (`R.drawable.house`) is based on [David Cadusseau](https://thenounproject.com/kaduma)'s [House](https://thenounproject.com/term/house/5749/) icon.
+Licensed as Creative Commons - Attribution (CC BY 3.0)
