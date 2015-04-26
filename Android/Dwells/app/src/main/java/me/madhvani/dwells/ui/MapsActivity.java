@@ -1,8 +1,5 @@
 package me.madhvani.dwells.ui;
 
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.LevelListDrawable;
 import android.os.Build;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -19,7 +16,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.WeakHashMap;
 
 import me.madhvani.dwells.BuildConfig;
 import me.madhvani.dwells.R;
