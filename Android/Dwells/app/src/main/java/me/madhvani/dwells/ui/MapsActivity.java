@@ -1,17 +1,25 @@
 package me.madhvani.dwells.ui;
 
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.LevelListDrawable;
 import android.os.Build;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.WeakHashMap;
 
 import me.madhvani.dwells.BuildConfig;
 import me.madhvani.dwells.R;
@@ -25,12 +33,16 @@ import retrofit.client.Response;
 
 public class MapsActivity extends FragmentActivity {
 
+    private static final String TAG = "MapsActivity";
+
     //TODO: Zet steden LatLng's in aparte struct
     private static final LatLng GENT = new LatLng(51.0878316,3.7237548);
     private static final String CITY_QUERY = "eq.gent";
     //TODO: Zet in Constants klasse, bewaar in lokale storage
     private static final String USER_AGENT = "Dwells/" + BuildConfig.VERSION_NAME + " (Android" + "; cd:" + Build.VERSION.CODENAME + "; si:" + Build.VERSION.SDK_INT + "; rv:" + Build.VERSION.RELEASE + ")";
 
+    //http://stackoverflow.com/questions/14054122/associate-an-object-with-marker-google-map-v2
+    private HashMap<Marker, Kot> markers = new HashMap <>();
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
 
     @Override
@@ -38,10 +50,6 @@ public class MapsActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
-    }
-
-    void setMarkers(List<Kot> kots){
-
     }
 
     @Override
@@ -93,6 +101,14 @@ public class MapsActivity extends FragmentActivity {
                 .build();                   // Creates a CameraPosition from the builder
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 1000, null);
 
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                Log.i(TAG, "URL of Kot object bound to clicked Marker: " + markers.get(marker).getUrl());
+                return false;
+            }
+        });
+
         RequestInterceptor requestInterceptor = new RequestInterceptor() {
             @Override
             public void intercept(RequestFacade request) {
@@ -110,11 +126,16 @@ public class MapsActivity extends FragmentActivity {
             @Override
             public void success(List<Kot> kots, Response response) {
                 for (int i = 0; i < kots.size(); i++) {
-                    mMap.addMarker(
-                            new MarkerOptions().position(
-                                    new LatLng( kots.get(i).getLatitude(), kots.get(i).getLongitude() )
-                            )
+                    Marker m = mMap.addMarker(
+                            new MarkerOptions()
+                                .position(
+                                    new LatLng(kots.get(i).getLatitude(), kots.get(i).getLongitude())
+                                )
+                                .icon(BitmapDescriptorFactory.fromResource(R.drawable.house))
+                                .title("€" + kots.get(i).getPrice().toString())
                     );
+                    Log.v(TAG, "Kot URL: " + kots.get(i).getUrl());
+                    markers.put(m, kots.get(i));
                 }
             }
 
