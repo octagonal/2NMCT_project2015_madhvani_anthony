@@ -1,11 +1,14 @@
 package me.madhvani.dwells.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.HashMap;
 import java.util.Map;
 
 //http://www.jsonschema2pojo.org/
 
-public class Kot {
+public class Kot implements Parcelable {
 
     private String city;
     private String url;
@@ -131,4 +134,41 @@ public class Kot {
         this.additionalProperties.put(name, value);
     }
 
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.city);
+        dest.writeString(this.url);
+        dest.writeValue(this.price);
+        dest.writeValue(this.area);
+        dest.writeValue(this.latitude);
+        dest.writeValue(this.longitude);
+    }
+
+    public Kot() {
+    }
+
+    private Kot(Parcel in) {
+        this.city = in.readString();
+        this.url = in.readString();
+        this.price = (Integer) in.readValue(Integer.class.getClassLoader());
+        this.area = (Integer) in.readValue(Integer.class.getClassLoader());
+        this.latitude = (Double) in.readValue(Double.class.getClassLoader());
+        this.longitude = (Double) in.readValue(Double.class.getClassLoader());
+    }
+
+    public static final Creator<Kot> CREATOR = new Creator<Kot>() {
+        public Kot createFromParcel(Parcel source) {
+            return new Kot(source);
+        }
+
+        public Kot[] newArray(int size) {
+            return new Kot[size];
+        }
+    };
 }
