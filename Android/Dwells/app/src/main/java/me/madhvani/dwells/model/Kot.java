@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 //http://www.jsonschema2pojo.org/
-
 public class Kot implements Parcelable {
 
     private String city;
@@ -134,7 +133,7 @@ public class Kot implements Parcelable {
         this.additionalProperties.put(name, value);
     }
 
-
+    //Plugin: Android Parcelable Code Generator
     @Override
     public int describeContents() {
         return 0;
