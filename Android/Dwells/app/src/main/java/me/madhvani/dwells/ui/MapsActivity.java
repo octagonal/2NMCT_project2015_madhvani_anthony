@@ -1,9 +1,12 @@
 package me.madhvani.dwells.ui;
 
+import android.content.Intent;
 import android.os.Build;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -97,11 +100,35 @@ public class MapsActivity extends FragmentActivity {
                 .build();                   // Creates a CameraPosition from the builder
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 1000, null);
 
-        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
             @Override
-            public boolean onMarkerClick(Marker marker) {
+            public void onInfoWindowClick(Marker marker) {
                 Log.i(TAG, "URL of Kot object bound to clicked Marker: " + markers.get(marker).getUrl());
-                return false;
+
+                /*
+                Intent i = new Intent(this, KotDetail.class);
+                i.putExtra("kot", markers.get(marker));
+                startActivity(i);
+                */
+            }
+        });
+
+        mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+            @Override
+            public View getInfoWindow(Marker arg0) {
+                return null;
+            }
+            @Override
+            public View getInfoContents(Marker marker) {
+                View myContentView = getLayoutInflater().inflate(
+                        R.layout.kot_marker, null);
+                TextView tvTitle = ((TextView) myContentView
+                        .findViewById(R.id.title));
+                tvTitle.setText(marker.getTitle());
+                TextView tvSnippet = ((TextView) myContentView
+                        .findViewById(R.id.snippet));
+                tvSnippet.setText(marker.getSnippet());
+                return myContentView;
             }
         });
 
@@ -129,6 +156,7 @@ public class MapsActivity extends FragmentActivity {
                                 )
                                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.house))
                                 .title("€" + kots.get(i).getPrice().toString())
+                                .snippet(kots.get(i).getArea().toString() + "m²")
                     );
                     Log.v(TAG, "Kot URL: " + kots.get(i).getUrl());
                     markers.put(m, kots.get(i));
