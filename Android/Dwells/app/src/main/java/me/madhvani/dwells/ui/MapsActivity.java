@@ -105,11 +105,9 @@ public class MapsActivity extends FragmentActivity {
             public void onInfoWindowClick(Marker marker) {
                 Log.i(TAG, "URL of Kot object bound to clicked Marker: " + markers.get(marker).getUrl());
 
-                /*
-                Intent i = new Intent(this, KotDetail.class);
+                Intent i = new Intent(getBaseContext(), KotDetail.class);
                 i.putExtra("kot", markers.get(marker));
                 startActivity(i);
-                */
             }
         });
 
