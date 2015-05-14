@@ -11,7 +11,7 @@ import retrofit.http.Query;
 /**
  * Created by anthony on 15.22.4.
  */
-public interface KotService {
+public interface KotServiceAPI {
         @GET("/kot")
         void getKotByCity(@Query("city") String sort, Callback<List<Kot>> cb);
 }
