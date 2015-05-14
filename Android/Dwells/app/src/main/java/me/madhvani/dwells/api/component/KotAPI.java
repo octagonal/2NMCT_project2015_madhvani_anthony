@@ -12,5 +12,5 @@ import me.madhvani.dwells.api.module.KotServiceModule;
 @Component(modules = KotServiceModule.class)
 @Singleton
 public interface KotAPI {
-    public KotServiceAPI service();
+    public KotServiceAPI query();
 }
