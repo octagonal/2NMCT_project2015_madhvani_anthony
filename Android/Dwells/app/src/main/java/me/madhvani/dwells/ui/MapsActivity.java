@@ -1,7 +1,6 @@
 package me.madhvani.dwells.ui;
 
 import android.content.Intent;
-import android.os.Build;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -10,6 +9,8 @@ import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -22,20 +23,16 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import me.madhvani.dwells.BuildConfig;
 import me.madhvani.dwells.R;
-import me.madhvani.dwells.api.KotServiceAPI;
 import me.madhvani.dwells.api.component.DaggerKotAPI;
 import me.madhvani.dwells.api.component.KotAPI;
 import me.madhvani.dwells.api.utilities.QueryBuilder;
 import me.madhvani.dwells.model.Kot;
-import retrofit.Callback;
-import retrofit.RequestInterceptor;
-import retrofit.RestAdapter;
+import retrofit.Callback;;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
-public class MapsActivity extends FragmentActivity {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private static final String TAG = "MapsActivity";
 
@@ -50,13 +47,17 @@ public class MapsActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        setUpMapIfNeeded();
+
+        MapFragment mapFragment = (MapFragment) getFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        setUpMapIfNeeded();
+        //setUpMapIfNeeded();
     }
 
     /**
@@ -125,14 +126,23 @@ public class MapsActivity extends FragmentActivity {
                 TextView tvTitle = ((TextView) myContentView
                         .findViewById(R.id.title));
                 tvTitle.setText(marker.getTitle());
-                TextView tvSnippet = ((TextView) myContentView
-                        .findViewById(R.id.snippet));
-                tvSnippet.setText(marker.getSnippet());
+                TextView area = ((TextView) myContentView
+                        .findViewById(R.id.area));
+                area.setText(marker.getSnippet());
 
                 String patternStr="([^\\/]*$)";
                 Pattern p = Pattern.compile(patternStr);
                 Matcher m = p.matcher(markers.get(marker).getUrl());
+                m.find();
                 String output = m.group(1).substring(0, 1).toUpperCase() + m.group(1).substring(1);
+                Log.v(TAG, "Output location: " + output.replaceAll("-"," "));
+
+                output = output.replaceAll("-"," ");
+
+                TextView location = ((TextView) myContentView
+                        .findViewById(R.id.location));
+                location.setText(output);
+
                 return myContentView;
             }
         });
@@ -161,5 +171,11 @@ public class MapsActivity extends FragmentActivity {
 
             }
         });
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+        setUpMap();
     }
 }

@@ -67,9 +67,6 @@ public class KotDetail extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * A placeholder fragment containing a simple view.
-     */
     public static class WebViewFragment extends Fragment {
 
         @InjectView(R.id.webView)
