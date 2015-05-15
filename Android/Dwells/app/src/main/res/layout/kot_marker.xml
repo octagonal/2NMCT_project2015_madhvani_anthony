@@ -25,9 +25,21 @@
             android:id="@+id/snippet"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:textSize="30sp"
+            android:text="Leuven"
+            android:paddingLeft="5dp"
+            android:phoneNumber="false"
+            android:autoText="true"
+            android:background="@color/button_material_dark" />
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
             android:textColor="@android:color/black"
-            android:textSize="10sp"
-            android:text="40"
+            android:textSize="30sp"
+            android:text="40³m"
             android:paddingLeft="5dp" />
 
         <TextView
@@ -35,7 +47,7 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:textColor="@android:color/black"
-            android:textSize="10sp"
+            android:textSize="30dp"
             android:textStyle="bold"
             android:text="€999"
             android:paddingLeft="5dp" />
