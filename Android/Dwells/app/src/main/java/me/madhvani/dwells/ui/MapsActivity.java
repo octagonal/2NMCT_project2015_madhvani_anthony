@@ -19,12 +19,15 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import me.madhvani.dwells.BuildConfig;
 import me.madhvani.dwells.R;
 import me.madhvani.dwells.api.KotServiceAPI;
 import me.madhvani.dwells.api.component.DaggerKotAPI;
 import me.madhvani.dwells.api.component.KotAPI;
+import me.madhvani.dwells.api.utilities.QueryBuilder;
 import me.madhvani.dwells.model.Kot;
 import retrofit.Callback;
 import retrofit.RequestInterceptor;
@@ -38,7 +41,6 @@ public class MapsActivity extends FragmentActivity {
 
     //TODO: Zet steden LatLng's in aparte struct
     private static final LatLng GENT = new LatLng(51.0878316,3.7237548);
-    private static final String CITY_QUERY = "eq.gent";
 
     //http://stackoverflow.com/questions/14054122/associate-an-object-with-marker-google-map-v2
     private HashMap<Marker, Kot> markers = new HashMap <>();
@@ -126,24 +128,28 @@ public class MapsActivity extends FragmentActivity {
                 TextView tvSnippet = ((TextView) myContentView
                         .findViewById(R.id.snippet));
                 tvSnippet.setText(marker.getSnippet());
+
+                String patternStr="([^\\/]*$)";
+                Pattern p = Pattern.compile(patternStr);
+                Matcher m = p.matcher(markers.get(marker).getUrl());
+                String output = m.group(1).substring(0, 1).toUpperCase() + m.group(1).substring(1);
                 return myContentView;
             }
         });
 
         KotAPI kotAPI = DaggerKotAPI.create();
-
-        kotAPI.query().getKotByCity(CITY_QUERY, new Callback<List<Kot>>() {
+        kotAPI.query().getKotByCity(QueryBuilder.StringBuilder("gent"), new Callback<List<Kot>>() {
             @Override
             public void success(List<Kot> kots, Response response) {
                 for (int i = 0; i < kots.size(); i++) {
                     Marker m = mMap.addMarker(
                             new MarkerOptions()
-                                .position(
-                                        new LatLng(kots.get(i).getLatitude(), kots.get(i).getLongitude())
-                                )
-                                .icon(BitmapDescriptorFactory.fromResource(R.drawable.house))
-                                .title("€" + kots.get(i).getPrice().toString())
-                                .snippet(kots.get(i).getArea().toString() + "m²")
+                                    .position(
+                                            new LatLng(kots.get(i).getLatitude(), kots.get(i).getLongitude())
+                                    )
+                                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.house))
+                                    .title("€" + kots.get(i).getPrice().toString())
+                                    .snippet(kots.get(i).getArea().toString() + "m²")
                     );
                     Log.v(TAG, "Kot URL: " + kots.get(i).getUrl());
                     markers.put(m, kots.get(i));
