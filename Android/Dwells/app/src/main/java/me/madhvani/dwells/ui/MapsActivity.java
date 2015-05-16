@@ -71,7 +71,7 @@ public class MapsActivity extends FragmentActivity {
     }
 
     public static class MyPagerAdapter extends FragmentPagerAdapter implements PagerSlidingTabStrip.IconTabProvider {
-        private static int NUM_ITEMS = 1;
+        private static int NUM_ITEMS = 2;
 
         private int tabIcons[] = {R.drawable.ic_tab_map, R.drawable.ic_tab_bookmarks};
 
@@ -91,8 +91,8 @@ public class MapsActivity extends FragmentActivity {
             switch (position) {
                 case 0:
                     return MapFragment.newInstance(0);
-                //case 1:
-                  //  return BookmarksFragment.newInstance(1);
+                case 1:
+                   return BookmarksFragment.newInstance(1);
                 default:
                     return null;
             }
@@ -231,6 +231,7 @@ public class MapsActivity extends FragmentActivity {
 
         @Override
         public void onMapReady(GoogleMap googleMap) {
+            mMap = googleMap;
             setUpMap();
             Log.v(TAG,"MapView already initialized");
         }
@@ -238,6 +239,8 @@ public class MapsActivity extends FragmentActivity {
         private void setUpMap() {
             if (mMap == null)
                 return; // Google Maps not available
+
+            Log.v(TAG,"Setting up map");
 
             MapsInitializer.initialize(getActivity());
 
