@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.astuetz.PagerSlidingTabStrip;
@@ -203,6 +204,7 @@ public class MapsActivity extends FragmentActivity {
         private static HashMap<Marker, Kot> markers = new HashMap <>();
         public static GoogleMap mMap; // Might be null if Google Play services APK is not available.
         public static MapView mapView;
+        public static LinearLayout markerActions;
 
         // newInstance constructor for creating fragment with arguments
         public static MapFragment newInstance(int page) {
@@ -218,6 +220,7 @@ public class MapsActivity extends FragmentActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             View view = inflater.inflate(R.layout.fragment_maps, container, false);
+            markerActions = (LinearLayout) view.findViewById(R.id.marker_actions);
             mapView = (MapView) view.findViewById(R.id.map);
             mapView.getMapAsync(this);
             mapView.onCreate(bundle);
@@ -230,6 +233,11 @@ public class MapsActivity extends FragmentActivity {
             mMap = googleMap;
             setUpMap();
             Log.v(TAG,"MapView already initialized");
+        }
+
+        private void showButtons(){
+            markerActions.animate()
+                    .translationY(markerActions.getHeight());
         }
 
         private void setUpMap() {
@@ -248,14 +256,21 @@ public class MapsActivity extends FragmentActivity {
                     .build();                   // Creates a CameraPosition from the builder
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 1000, null);
 
+            mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+                @Override
+                public void onMapClick(LatLng latLng) {
+                    markerActions.animate()
+                            .translationY(0);
+                }
+            });
             mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
                 @Override
                 public void onInfoWindowClick(Marker marker) {
                     Log.i(TAG, "URL of Kot object bound to clicked Marker: " + markers.get(marker).getUrl());
 
-                    Intent i = new Intent(getActivity().getBaseContext(), KotDetail.class);
+                    /*Intent i = new Intent(getActivity().getBaseContext(), KotDetail.class);
                     i.putExtra("kot", markers.get(marker));
-                    startActivity(i);
+                    startActivity(i);*/
                 }
             });
 
@@ -288,6 +303,8 @@ public class MapsActivity extends FragmentActivity {
                             .findViewById(R.id.location));
                     location.setText(output);
 
+                    Log.v(TAG, "Info Window");
+                    showButtons();
                     return myContentView;
                 }
             });
