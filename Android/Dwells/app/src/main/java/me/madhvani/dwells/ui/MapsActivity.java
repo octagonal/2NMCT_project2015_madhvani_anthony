@@ -69,8 +69,10 @@ public class MapsActivity extends FragmentActivity {
         super.onResume();
     }
 
-    public static class MyPagerAdapter extends FragmentPagerAdapter {
+    public static class MyPagerAdapter extends FragmentPagerAdapter implements PagerSlidingTabStrip.IconTabProvider {
         private static int NUM_ITEMS = 2;
+
+        private int tabIcons[] = {R.drawable.ic_tab_map, R.drawable.ic_tab_bookmarks};
 
         public MyPagerAdapter(FragmentManager fragmentManager) {
             super(fragmentManager);
@@ -87,7 +89,7 @@ public class MapsActivity extends FragmentActivity {
         public Fragment getItem(int position) {
             switch (position) {
                 case 0: // Fragment # 0 - This will show FirstFragment
-                    return BookmarksFragment.newInstance(0, "Page # 1"); //return MapFragment.newInstance(0, "Page # 1");
+                    return MapFragment.newInstance(0, "Page # 1");
                 case 1: // Fragment # 0 - This will show FirstFragment different title
                     return BookmarksFragment.newInstance(1, "Page # 2");
                 default:
@@ -95,10 +97,9 @@ public class MapsActivity extends FragmentActivity {
             }
         }
 
-        // Returns the page title for the top indicator
         @Override
-        public CharSequence getPageTitle(int position) {
-            return "Page " + position;
+        public int getPageIconResId(int position) {
+            return tabIcons[position];
         }
 
     }
@@ -132,7 +133,7 @@ public class MapsActivity extends FragmentActivity {
 
     public static class MapFragment extends Fragment implements OnMapReadyCallback {
         // Store instance variables
-        private String title;
+        public static final String ARG_PAGE = "ARG_PAGE";
         private int page;
 
         private static Bundle bundle;
@@ -164,7 +165,7 @@ public class MapsActivity extends FragmentActivity {
         @Override
         public void onSaveInstanceState(Bundle savedInstanceState){
             super.onSaveInstanceState(savedInstanceState);
-            mapView.onSaveInstanceState(bundle);
+            mapView.onSaveInstanceState(savedInstanceState);
         }
 
         // Store instance variables based on arguments passed
@@ -172,8 +173,7 @@ public class MapsActivity extends FragmentActivity {
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             bundle = savedInstanceState;
-            page = getArguments().getInt("someInt", 0);
-            title = getArguments().getString("someTitle");
+            page = getArguments().getInt(ARG_PAGE);
         }
 
         //http://stackoverflow.com/questions/14054122/associate-an-object-with-marker-google-map-v2
@@ -185,8 +185,7 @@ public class MapsActivity extends FragmentActivity {
         public static MapFragment newInstance(int page, String title) {
             MapFragment fragmentFirst = new MapFragment();
             Bundle args = new Bundle();
-            args.putInt("someInt", page);
-            args.putString("someTitle", title);
+            args.putInt(ARG_PAGE, page);
             fragmentFirst.setArguments(args);
             return fragmentFirst;
         }
@@ -282,7 +281,7 @@ public class MapsActivity extends FragmentActivity {
                                         .position(
                                                 new LatLng(kots.get(i).getLatitude(), kots.get(i).getLongitude())
                                         )
-                                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.house))
+                                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_icon_house))
                                         .title("€" + kots.get(i).getPrice().toString())
                                         .snippet(kots.get(i).getArea().toString() + "m²")
                         );
