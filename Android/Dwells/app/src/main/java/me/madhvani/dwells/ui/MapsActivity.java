@@ -56,9 +56,7 @@ public class MapsActivity extends FragmentActivity {
         setContentView(R.layout.activity_maps);
 
         ViewPager vpPager = (ViewPager) findViewById(R.id.vpPager);
-        vpPager.setAdapter(new MyPagerAdapter(getSupportFragmentManager()));
-        //vpPager.setClipToPadding(false);
-        //vpPager.setPageMargin(12);
+        vpPager.setAdapter(new MapNavigationPagerAdapter(getSupportFragmentManager()));
 
         PagerSlidingTabStrip tabsStrip = (PagerSlidingTabStrip) findViewById(R.id.tabs);
         tabsStrip.setViewPager(vpPager);
@@ -70,12 +68,12 @@ public class MapsActivity extends FragmentActivity {
         super.onResume();
     }
 
-    public static class MyPagerAdapter extends FragmentPagerAdapter implements PagerSlidingTabStrip.IconTabProvider {
+    public static class MapNavigationPagerAdapter extends FragmentPagerAdapter implements PagerSlidingTabStrip.IconTabProvider {
         private static int NUM_ITEMS = 2;
 
         private int tabIcons[] = {R.drawable.ic_tab_map, R.drawable.ic_tab_bookmarks};
 
-        public MyPagerAdapter(FragmentManager fragmentManager) {
+        public MapNavigationPagerAdapter(FragmentManager fragmentManager) {
             super(fragmentManager);
         }
 
@@ -105,10 +103,10 @@ public class MapsActivity extends FragmentActivity {
 
     }
 
-    public static class ContactViewHolder extends RecyclerView.ViewHolder {
+    public static class BookmarksViewHolder extends RecyclerView.ViewHolder {
         protected TextView title;
 
-        public ContactViewHolder(View v) {
+        public BookmarksViewHolder(View v) {
             super(v);
             title =  (TextView) v.findViewById(R.id.title);
         }
@@ -118,7 +116,6 @@ public class MapsActivity extends FragmentActivity {
         public static final String ARG_PAGE = "ARG_PAGE";
         private int page;
         private static RecyclerView recyclerView;
-
 
         @Override
         public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -138,7 +135,7 @@ public class MapsActivity extends FragmentActivity {
             items.add(1,"lel");
             items.add(2,"kek");
 
-            SimpleRecyclerAdapter aItems = new SimpleRecyclerAdapter(items);
+            BookmarksRecyclerAdapter aItems = new BookmarksRecyclerAdapter(items);
             recyclerView.setAdapter(aItems);
             return view;
         }
@@ -195,7 +192,6 @@ public class MapsActivity extends FragmentActivity {
             mapView.onSaveInstanceState(savedInstanceState);
         }
 
-        // Store instance variables based on arguments passed
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
@@ -323,14 +319,14 @@ public class MapsActivity extends FragmentActivity {
         }
     }
 
-    public static class SimpleRecyclerAdapter extends RecyclerView.Adapter<ContactViewHolder> {
+    public static class BookmarksRecyclerAdapter extends RecyclerView.Adapter<BookmarksViewHolder> {
         private List<String> items;
 
         // Provide a reference to the views for each data item
         // Provide access to all the views for a data item in a view holder
 
         // Provide a suitable constructor (depends on the kind of dataset)
-        public SimpleRecyclerAdapter(List<String> items) {
+        public BookmarksRecyclerAdapter(List<String> items) {
             this.items = items;
         }
 
@@ -343,16 +339,16 @@ public class MapsActivity extends FragmentActivity {
         // Create new items (invoked by the layout manager)
         // Usually involves inflating a layout from XML and returning the holder
         @Override
-        public ContactViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
+        public BookmarksViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
             View itemView = LayoutInflater.from(viewGroup.getContext()).
                     inflate(R.layout.bookmarks_card, viewGroup, false);
-            return new ContactViewHolder(itemView);
+            return new BookmarksViewHolder(itemView);
         }
 
         // Replace the contents of a view (invoked by the layout manager)
         // Involves populating data into the item through holder
         @Override
-        public void onBindViewHolder(ContactViewHolder viewHolder, int position) {
+        public void onBindViewHolder(BookmarksViewHolder viewHolder, int position) {
             String item = items.get(position);
             viewHolder.title.setText(item);
         }
