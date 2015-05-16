@@ -1,5 +1,8 @@
 package me.madhvani.dwells.ui;
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
+import android.content.SharedPreferences;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -14,6 +17,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -28,10 +32,23 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.gson.Gson;
 
+import org.apache.commons.io.FileUtils;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -159,6 +176,7 @@ public class MapsActivity extends FragmentActivity {
     public static class MapFragment extends Fragment implements OnMapReadyCallback {
         // Store instance variables
         public static final String ARG_PAGE = "ARG_PAGE";
+        public static final int ANIMATION_DURATION = 250;
         private int page;
 
         private static Bundle bundle;
@@ -204,7 +222,16 @@ public class MapsActivity extends FragmentActivity {
         private static HashMap<Marker, Kot> markers = new HashMap <>();
         public static GoogleMap mMap; // Might be null if Google Play services APK is not available.
         public static MapView mapView;
+        public static Marker selectedMarker = null;
+
+        public static Button webViewer;
+        public static Button bookmarkAdder;
+
+        private static String BOOKMARKS_FILENAME = "bookmarks";
+
         public static LinearLayout markerActions;
+
+        public static SharedPreferences  mPrefs;
 
         // newInstance constructor for creating fragment with arguments
         public static MapFragment newInstance(int page) {
@@ -225,6 +252,31 @@ public class MapsActivity extends FragmentActivity {
             mapView.getMapAsync(this);
             mapView.onCreate(bundle);
 
+            webViewer = (Button) markerActions.findViewById(R.id.web_viewer);
+            bookmarkAdder = (Button) markerActions.findViewById(R.id.bookmark_adder);
+
+            webViewer.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent i = new Intent(getActivity().getBaseContext(), KotDetail.class);
+                    i.putExtra("kot", markers.get(selectedMarker));
+                    startActivity(i);
+                }
+            });
+
+            bookmarkAdder.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        bookmarkWriterHandler(markers.get(selectedMarker));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+
+            });
+
             return view;
         }
 
@@ -232,12 +284,28 @@ public class MapsActivity extends FragmentActivity {
         public void onMapReady(GoogleMap googleMap) {
             mMap = googleMap;
             setUpMap();
-            Log.v(TAG,"MapView already initialized");
+            Log.v(TAG, "MapView already initialized");
+        }
+
+        private void hideButtons(){
+            if(selectedMarker != null)
+                return;
+
+            ObjectAnimator fadeAltAnim = ObjectAnimator.ofFloat(markerActions, View.ALPHA, 1, 0);
+            fadeAltAnim.setDuration(ANIMATION_DURATION);
+            fadeAltAnim.start();
+            Log.v(TAG, "Fading out");
+
         }
 
         private void showButtons(){
-            markerActions.animate()
-                    .translationY(markerActions.getHeight());
+            if(selectedMarker != null)
+                return;
+
+            ObjectAnimator fadeAltAnim = ObjectAnimator.ofFloat(markerActions, View.ALPHA, 0, 1);
+            fadeAltAnim.setDuration(ANIMATION_DURATION);
+            fadeAltAnim.start();
+            Log.v(TAG, "Fading in");
         }
 
         private void setUpMap() {
@@ -259,18 +327,18 @@ public class MapsActivity extends FragmentActivity {
             mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
                 @Override
                 public void onMapClick(LatLng latLng) {
-                    markerActions.animate()
-                            .translationY(0);
+                    if (selectedMarker != null) {
+                        selectedMarker = null;
+                        Log.v(TAG, "Nulling selectedMarker");
+                        hideButtons();
+                    }
                 }
             });
+
             mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
                 @Override
                 public void onInfoWindowClick(Marker marker) {
                     Log.i(TAG, "URL of Kot object bound to clicked Marker: " + markers.get(marker).getUrl());
-
-                    /*Intent i = new Intent(getActivity().getBaseContext(), KotDetail.class);
-                    i.putExtra("kot", markers.get(marker));
-                    startActivity(i);*/
                 }
             });
 
@@ -279,8 +347,13 @@ public class MapsActivity extends FragmentActivity {
                 public View getInfoWindow(Marker arg0) {
                     return null;
                 }
+
                 @Override
                 public View getInfoContents(Marker marker) {
+                    showButtons();
+                    selectedMarker = marker;
+                    Log.v(TAG, "Selected marker is " + marker.getId());
+
                     View myContentView = getActivity().getLayoutInflater().inflate(
                             R.layout.kot_marker, null);
                     TextView tvTitle = ((TextView) myContentView
@@ -290,21 +363,20 @@ public class MapsActivity extends FragmentActivity {
                             .findViewById(R.id.area));
                     area.setText(marker.getSnippet());
 
-                    String patternStr="([^\\/]*$)";
+                    String patternStr = "([^\\/]*$)";
                     Pattern p = Pattern.compile(patternStr);
                     Matcher m = p.matcher(markers.get(marker).getUrl());
                     m.find();
                     String output = m.group(1).substring(0, 1).toUpperCase() + m.group(1).substring(1);
-                    Log.v(TAG, "Output location: " + output.replaceAll("-"," "));
+                    Log.v(TAG, "Output location: " + output.replaceAll("-", " "));
 
-                    output = output.replaceAll("-"," ");
+                    output = output.replaceAll("-", " ");
 
                     TextView location = ((TextView) myContentView
                             .findViewById(R.id.location));
                     location.setText(output);
 
                     Log.v(TAG, "Info Window");
-                    showButtons();
                     return myContentView;
                 }
             });
@@ -333,6 +405,36 @@ public class MapsActivity extends FragmentActivity {
 
                 }
             });
+        }
+
+        private ArrayList<Kot> readItems() throws IOException {
+            FileInputStream fis = new FileInputStream(BOOKMARKS_FILENAME);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            ArrayList<Kot> kots = null;
+            try {
+                kots = (ArrayList<Kot>) ois.readObject();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+            ois.close();
+            return kots;
+        }
+
+        //http://stackoverflow.com/a/16111797
+        private void writeItems(List<Kot> kots) throws IOException {
+            FileOutputStream fos = new FileOutputStream(BOOKMARKS_FILENAME);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(kots);
+            oos.close();
+        }
+
+        private void bookmarkWriterHandler(Kot kot) throws IOException {
+            ArrayList<Kot> kots = readItems();
+            if(kots == null){
+                kots = new ArrayList<Kot>();
+            }
+            kots.add(kot);
+            writeItems(kots);
         }
     }
 

@@ -15,21 +15,21 @@
         android:orientation="horizontal"
         android:id="@+id/marker_actions"
         android:layout_gravity="bottom"
-        android:visibility="invisible">
+        android:alpha="0">
         <Button
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:text="@string/view_on_web"
-            android:id="@+id/webview"
+            android:id="@+id/web_viewer"
             android:layout_alignParentTop="true"
             android:layout_alignParentStart="true"
-            android:layout_toStartOf="@+id/bookmark"
+            android:layout_toStartOf="@+id/bookmark_adder"
             android:layout_weight="1" />
         <Button
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:text="@string/bookmark"
-            android:id="@+id/bookmark"
+            android:id="@+id/bookmark_adder"
             android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"
             android:layout_weight="1" />
