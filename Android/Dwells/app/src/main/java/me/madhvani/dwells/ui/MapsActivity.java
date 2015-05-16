@@ -284,7 +284,6 @@ public class MapsActivity extends FragmentActivity {
         public void onMapReady(GoogleMap googleMap) {
             mMap = googleMap;
             setUpMap();
-            Log.v(TAG, "MapView already initialized");
         }
 
         private void hideButtons(){
@@ -294,7 +293,6 @@ public class MapsActivity extends FragmentActivity {
             ObjectAnimator fadeAltAnim = ObjectAnimator.ofFloat(markerActions, View.ALPHA, 1, 0);
             fadeAltAnim.setDuration(ANIMATION_DURATION);
             fadeAltAnim.start();
-            Log.v(TAG, "Fading out");
 
         }
 
@@ -305,14 +303,12 @@ public class MapsActivity extends FragmentActivity {
             ObjectAnimator fadeAltAnim = ObjectAnimator.ofFloat(markerActions, View.ALPHA, 0, 1);
             fadeAltAnim.setDuration(ANIMATION_DURATION);
             fadeAltAnim.start();
-            Log.v(TAG, "Fading in");
         }
 
         private void setUpMap() {
             if (mMap == null)
                 return; // Google Maps not available
 
-            Log.v(TAG,"Setting up map");
 
             MapsInitializer.initialize(getActivity());
 
@@ -329,7 +325,6 @@ public class MapsActivity extends FragmentActivity {
                 public void onMapClick(LatLng latLng) {
                     if (selectedMarker != null) {
                         selectedMarker = null;
-                        Log.v(TAG, "Nulling selectedMarker");
                         hideButtons();
                     }
                 }
@@ -338,7 +333,6 @@ public class MapsActivity extends FragmentActivity {
             mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
                 @Override
                 public void onInfoWindowClick(Marker marker) {
-                    Log.i(TAG, "URL of Kot object bound to clicked Marker: " + markers.get(marker).getUrl());
                 }
             });
 
@@ -352,7 +346,6 @@ public class MapsActivity extends FragmentActivity {
                 public View getInfoContents(Marker marker) {
                     showButtons();
                     selectedMarker = marker;
-                    Log.v(TAG, "Selected marker is " + marker.getId());
 
                     View myContentView = getActivity().getLayoutInflater().inflate(
                             R.layout.kot_marker, null);
@@ -368,7 +361,6 @@ public class MapsActivity extends FragmentActivity {
                     Matcher m = p.matcher(markers.get(marker).getUrl());
                     m.find();
                     String output = m.group(1).substring(0, 1).toUpperCase() + m.group(1).substring(1);
-                    Log.v(TAG, "Output location: " + output.replaceAll("-", " "));
 
                     output = output.replaceAll("-", " ");
 
@@ -376,7 +368,6 @@ public class MapsActivity extends FragmentActivity {
                             .findViewById(R.id.location));
                     location.setText(output);
 
-                    Log.v(TAG, "Info Window");
                     return myContentView;
                 }
             });
@@ -395,7 +386,6 @@ public class MapsActivity extends FragmentActivity {
                                         .title("€" + kots.get(i).getPrice().toString())
                                         .snippet(kots.get(i).getArea().toString() + "m²")
                         );
-                        Log.v(TAG, "Kot URL: " + kots.get(i).getUrl());
                         markers.put(m, kots.get(i));
                     }
                 }
