@@ -3,11 +3,12 @@ package me.madhvani.dwells.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 //http://www.jsonschema2pojo.org/
-public class Kot implements Parcelable {
+public class Kot implements Parcelable, Serializable {
 
     private String city;
     private String url;
@@ -15,7 +16,7 @@ public class Kot implements Parcelable {
     private Integer area;
     private Double latitude;
     private Double longitude;
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    //private transient Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
     /**
      *
@@ -125,13 +126,13 @@ public class Kot implements Parcelable {
         this.longitude = longitude;
     }
 
-    public Map<String, Object> getAdditionalProperties() {
+    /*public Map<String, Object> getAdditionalProperties() {
         return this.additionalProperties;
     }
 
     public void setAdditionalProperty(String name, Object value) {
         this.additionalProperties.put(name, value);
-    }
+    }*/
 
     //Plugin: Android Parcelable Code Generator
     @Override

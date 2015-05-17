@@ -2,7 +2,9 @@ package me.madhvani.dwells.ui;
 
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -37,6 +39,7 @@ import com.google.gson.Gson;
 import org.apache.commons.io.FileUtils;
 
 import java.io.BufferedWriter;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -44,6 +47,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -253,17 +258,16 @@ public class MapsActivity extends FragmentActivity {
             mapView.onCreate(bundle);
 
             webViewer = (Button) markerActions.findViewById(R.id.web_viewer);
-            bookmarkAdder = (Button) markerActions.findViewById(R.id.bookmark_adder);
-
             webViewer.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Intent i = new Intent(getActivity().getBaseContext(), KotDetail.class);
-                    i.putExtra("kot", markers.get(selectedMarker));
+                    i.putExtra("kot",(Parcelable) markers.get(selectedMarker));
                     startActivity(i);
                 }
             });
 
+            bookmarkAdder = (Button) markerActions.findViewById(R.id.bookmark_adder);
             bookmarkAdder.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -397,34 +401,70 @@ public class MapsActivity extends FragmentActivity {
             });
         }
 
+        //http://stackoverflow.com/a/1195078
+        public class AppendingObjectOutputStream extends ObjectOutputStream {
+
+            public AppendingObjectOutputStream(OutputStream out) throws IOException {
+                super(out);
+            }
+
+            @Override
+            protected void writeStreamHeader() throws IOException {
+                // do not write a header, but reset:
+                // this line added after another question
+                // showed a problem with the original
+                reset();
+            }
+
+        }
+
         private ArrayList<Kot> readItems() throws IOException {
-            FileInputStream fis = new FileInputStream(BOOKMARKS_FILENAME);
+            FileInputStream fis = getActivity().openFileInput(BOOKMARKS_FILENAME);
             ObjectInputStream ois = new ObjectInputStream(fis);
-            ArrayList<Kot> kots = null;
+            Kot kot = null;
+            ArrayList<Kot> kots = new ArrayList<Kot>();
+
             try {
-                kots = (ArrayList<Kot>) ois.readObject();
+                while(true){
+                    //http://stackoverflow.com/a/19213702
+                    try {
+                        kot = (Kot) ois.readObject();
+                        Log.v(TAG, "Reading: " + kot.getUrl());
+                        kots.add(kot);
+                    } catch (EOFException e) {
+                        Log.v(TAG, e.getMessage());
+                    }
+                }
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
             ois.close();
-            return kots;
+
+            if(kot != null) {
+                return kots;
+            } else {
+                return new ArrayList<Kot>();
+            }
         }
 
         //http://stackoverflow.com/a/16111797
-        private void writeItems(List<Kot> kots) throws IOException {
-            FileOutputStream fos = new FileOutputStream(BOOKMARKS_FILENAME);
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(kots);
+        private void writeItems(Kot kot) throws IOException {
+            FileOutputStream fos = getActivity().openFileOutput(BOOKMARKS_FILENAME, Context.MODE_PRIVATE);
+            //Zet naar MODE_APPEND na run
+            ObjectOutputStream oos;
+            if(new File(BOOKMARKS_FILENAME).exists()) {
+                oos = new AppendingObjectOutputStream(fos);
+            } else {
+                oos = new ObjectOutputStream(fos);
+            }
+            oos.writeObject((Serializable) kot);
             oos.close();
         }
 
         private void bookmarkWriterHandler(Kot kot) throws IOException {
-            ArrayList<Kot> kots = readItems();
-            if(kots == null){
-                kots = new ArrayList<Kot>();
-            }
-            kots.add(kot);
-            writeItems(kots);
+            Log.v(TAG, "Writing: " + kot.getUrl());
+            writeItems(kot);
+            readItems();
         }
     }
 
