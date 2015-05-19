@@ -155,7 +155,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
 
         });
-
         return view;
     }
 
@@ -277,70 +276,67 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private static String BOOKMARKS_FILENAME = "bookmarks";
-    //TODO: Extract naar andere klasse en maak component
-    //http://stackoverflow.com/a/1195078
-    public class AppendingObjectOutputStream extends ObjectOutputStream {
-
-        public AppendingObjectOutputStream(OutputStream out) throws IOException {
-            super(out);
-        }
-
-        @Override
-        protected void writeStreamHeader() throws IOException {
-            // do not write a header, but reset:
-            // this line added after another question
-            // showed a problem with the original
-            reset();
-        }
-
-    }
 
     private ArrayList<Kot> readItems() throws IOException {
-        FileInputStream fis = getActivity().openFileInput(BOOKMARKS_FILENAME);
-        ObjectInputStream ois = new ObjectInputStream(fis);
-        Kot kot = null;
-        ArrayList<Kot> kots = new ArrayList<Kot>();
+        ArrayList<Kot> kots = null;
+        FileInputStream fis = getActivity().getApplicationContext().openFileInput(BOOKMARKS_FILENAME);
+        ObjectInputStream ois = null;
 
         try {
-            while (true) {
-                //http://stackoverflow.com/a/19213702
-                try {
-                    kot = (Kot) ois.readObject();
-                    Log.v(TAG, "Reading: " + kot.getUrl());
-                    kots.add(kot);
-                } catch (EOFException e) {
-                    Log.v(TAG, e.getMessage());
-                }
-            }
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            ois = new ObjectInputStream(fis);
+        } catch (EOFException e){
+            Log.v(TAG, "EOF: " + e.getMessage());
+            return new ArrayList<Kot>();
         }
-        ois.close();
 
-        if (kot != null) {
+        try {
+            //http://stackoverflow.com/a/19213702
+            kots = (ArrayList<Kot>) ois.readObject();
+        } catch (EOFException e) {
+            Log.v(TAG,"EOF was reached: " + e.getMessage());
+        } catch (ClassNotFoundException e) {
+            Log.v(TAG, "Could not readObject -> Kots: " + e.getMessage());
+        } finally {
+            ois.close();
+        }
+
+        if (kots != null) {
             return kots;
         } else {
             return new ArrayList<Kot>();
         }
     }
 
-    //http://stackoverflow.com/a/16111797
-    private void writeItems(Kot kot) throws IOException {
-        FileOutputStream fos = getActivity().openFileOutput(BOOKMARKS_FILENAME, Context.MODE_PRIVATE);
-        //Zet naar MODE_APPEND na run
-        ObjectOutputStream oos;
-        if (new File(BOOKMARKS_FILENAME).exists()) {
-            oos = new AppendingObjectOutputStream(fos);
-        } else {
-            oos = new ObjectOutputStream(fos);
+    public boolean fileExists(Context context, String filename) {
+        File file = context.getFileStreamPath(filename);
+        if(file == null || !file.exists()) {
+            return false;
         }
-        oos.writeObject((Serializable) kot);
-        oos.close();
+        return true;
+    }
+
+    //http://stackoverflow.com/a/16111797
+    private void writeItems(ArrayList<Kot> kots) throws IOException {
+
+        FileOutputStream fos = getActivity().getApplicationContext().openFileOutput(BOOKMARKS_FILENAME, Context.MODE_PRIVATE);
+        ObjectOutputStream oos;
+
+        Log.v(TAG, "Creating new bookmarks");
+        oos = new ObjectOutputStream(fos);
+        oos.writeObject((Serializable) kots);
     }
 
     private void bookmarkWriterHandler(Kot kot) throws IOException {
         Log.v(TAG, "Writing: " + kot.getUrl());
-        writeItems(kot);
-        readItems();
+
+        ArrayList<Kot> kots = readItems();
+        kots.add(kot);
+        writeItems(kots);
+
+        kots = readItems();
+
+        for (int i = 0; i < kots.size(); i++) {
+            Log.v(TAG, kots.get(i).getUrl());
+        }
     }
 }
