@@ -46,6 +46,7 @@ import me.madhvani.dwells.api.component.DaggerKotAPI;
 import me.madhvani.dwells.api.component.KotAPI;
 import me.madhvani.dwells.api.utilities.QueryBuilder;
 import me.madhvani.dwells.model.Kot;
+import me.madhvani.dwells.utils.BookmarkReaderWriter;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -56,7 +57,10 @@ import retrofit.client.Response;
 public class MapFragment extends Fragment implements OnMapReadyCallback {
     // Store instance variables
     public static final String ARG_PAGE = "ARG_PAGE";
+
     private static final LatLng GENT = new LatLng(51.0878316,3.7237548);
+    private static final LatLng KORTRIJK = new LatLng(50.82806, 3.265);
+
     public static final int ANIMATION_DURATION = 250;
     private static final String TAG = "MapFragment";
     private int page;
@@ -98,6 +102,15 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         super.onCreate(savedInstanceState);
         bundle = savedInstanceState;
         page = getArguments().getInt(ARG_PAGE);
+    }
+
+
+    public void changeLocation(LatLng latLng){
+        if(mMap != null) {
+            Log.v(TAG, "Changing location");
+            CameraPosition cameraPosition = getCameraPosition(latLng);
+            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 1000, null);
+        }
     }
 
     //http://stackoverflow.com/questions/14054122/associate-an-object-with-marker-google-map-v2
@@ -147,7 +160,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             @Override
             public void onClick(View v) {
                 try {
-                    bookmarkWriterHandler(markers.get(selectedMarker));
+                    BookmarkReaderWriter bookmarkReaderWriter = new BookmarkReaderWriter(getActivity().getApplicationContext(),
+                            ((MapsActivity) getActivity()).getSelectedItem());
+                    bookmarkReaderWriter.writeItem(markers.get(selectedMarker));
+
+                    //bookmarkWriterHandler(markers.get(selectedMarker));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -190,14 +207,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         MapsInitializer.initialize(getActivity());
 
-        CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(GENT)
-                .zoom(10)                   // Sets the zoom
-                .bearing(0)                // Sets the orientation of the camera to east
-                .tilt(0)                   // Sets the tilt of the camera to 0 degrees
-                .build();                   // Creates a CameraPosition from the builder
+        CameraPosition cameraPosition = getCameraPosition(GENT);
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 1000, null);
 
+        changeLocation(GENT);
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
@@ -242,8 +255,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
                 output = output.replaceAll("-", " ");
 
-                TextView location = ((TextView) myContentView
-                        .findViewById(R.id.location));
+                    TextView location = ((TextView) myContentView
+                            .findViewById(R.id.location));
                 location.setText(output);
 
                 return myContentView;
@@ -251,7 +264,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         });
 
         KotAPI kotAPI = DaggerKotAPI.create();
-        kotAPI.query().getKotByCity(QueryBuilder.StringBuilder("gent"), new Callback<List<Kot>>() {
+        kotAPI.query().getAllKots(new Callback<List<Kot>>() {
             @Override
             public void success(List<Kot> kots, Response response) {
                 for (int i = 0; i < kots.size(); i++) {
@@ -275,7 +288,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         });
     }
 
+    private CameraPosition getCameraPosition(LatLng latLng) {
+        return new CameraPosition.Builder()
+                    .target(latLng)
+                    .zoom(12)                   // Sets the zoom
+                    .bearing(0)                // Sets the orientation of the camera to east
+                    .tilt(0)                   // Sets the tilt of the camera to 0 degrees
+                    .build();
+    }
+
     private static String BOOKMARKS_FILENAME = "bookmarks";
+
+    //TODO: Maak gebruik van nieuwe interface, spooky
 
     private ArrayList<Kot> readItems() throws IOException {
         ArrayList<Kot> kots = null;
@@ -305,14 +329,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         } else {
             return new ArrayList<Kot>();
         }
-    }
-
-    public boolean fileExists(Context context, String filename) {
-        File file = context.getFileStreamPath(filename);
-        if(file == null || !file.exists()) {
-            return false;
-        }
-        return true;
     }
 
     //http://stackoverflow.com/a/16111797

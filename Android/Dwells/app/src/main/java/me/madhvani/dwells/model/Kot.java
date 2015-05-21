@@ -16,7 +16,7 @@ public class Kot implements Parcelable, Serializable {
     private Integer area;
     private Double latitude;
     private Double longitude;
-    //private transient Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private static final long serialVersionUID = 42L;
 
     /**
      *
@@ -126,13 +126,34 @@ public class Kot implements Parcelable, Serializable {
         this.longitude = longitude;
     }
 
-    /*public Map<String, Object> getAdditionalProperties() {
-        return this.additionalProperties;
+    //Generate -> equals() and hashCode()
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Kot kot = (Kot) o;
+
+        if (!city.equals(kot.city)) return false;
+        if (!url.equals(kot.url)) return false;
+        if (!price.equals(kot.price)) return false;
+        if (!area.equals(kot.area)) return false;
+        if (!latitude.equals(kot.latitude)) return false;
+        return longitude.equals(kot.longitude);
+
     }
 
-    public void setAdditionalProperty(String name, Object value) {
-        this.additionalProperties.put(name, value);
-    }*/
+    @Override
+    public int hashCode() {
+        int result = city.hashCode();
+        result = 31 * result + url.hashCode();
+        result = 31 * result + price.hashCode();
+        result = 31 * result + area.hashCode();
+        result = 31 * result + latitude.hashCode();
+        result = 31 * result + longitude.hashCode();
+        return result;
+    }
 
     //Plugin: Android Parcelable Code Generator
     @Override

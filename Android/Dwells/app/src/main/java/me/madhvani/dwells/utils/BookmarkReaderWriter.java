@@ -5,13 +5,17 @@ import android.util.Log;
 
 import java.io.EOFException;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import me.madhvani.dwells.model.Kot;
 
@@ -20,32 +24,59 @@ import me.madhvani.dwells.model.Kot;
  */
 public class BookmarkReaderWriter implements ObjectReaderWriter<Kot> {
 
+    private final String city;
     private Context context;
     private static String BOOKMARKS_FILENAME = "bookmarks";
     private static String TAG = "BookmarkReaderWriter";
+    private String fullName;
 
     @Override
     public void writeItems(ArrayList<Kot> kots) throws IOException {
-        FileOutputStream fos = context.openFileOutput(BOOKMARKS_FILENAME, Context.MODE_PRIVATE);
+        FileOutputStream fos = context.openFileOutput(fullName, Context.MODE_PRIVATE);
         ObjectOutputStream oos;
 
         Log.v(TAG, "Creating new bookmarks");
         oos = new ObjectOutputStream(fos);
-        oos.writeObject((Serializable) kots);
+        oos.writeObject((Serializable) removeDuplicates(kots));
     }
 
     @Override
     public void writeItem(Kot kot) throws IOException{
         Log.v(TAG, "Writing: " + kot.getUrl());
         ArrayList<Kot> kots = readItems();
-        kots.add(kot);
-        writeItems(kots);
+        boolean duplicate = false;
+        /*for (int i = 0; i < kots.size(); i++) {
+            if(kots.get(i).getUrl() == kot.getUrl()){
+                duplicate = true;
+            }
+        }*/
+        //if(!duplicate){
+            kots.add(kot);
+            writeItems(kots);
+        //}
+    }
+
+    @Override
+    public ArrayList<Kot> removeDuplicates(ArrayList<Kot> kots) throws IOException {
+        Set<Kot> setItems = new LinkedHashSet<>();
+        setItems.addAll(kots);
+        kots.clear();
+        kots.addAll(setItems);
+        return kots;
     }
 
     @Override
     public ArrayList<Kot> readItems() throws IOException{
+        //return new ArrayList<Kot>();
+
         ArrayList<Kot> kots = null;
-        FileInputStream fis = context.getApplicationContext().openFileInput(BOOKMARKS_FILENAME);
+        FileInputStream fis = null;
+        try {
+            fis = context.getApplicationContext().openFileInput(fullName);
+        } catch (FileNotFoundException e){
+            return new ArrayList<Kot>();
+        }
+
         ObjectInputStream ois = null;
 
         try {
@@ -73,8 +104,10 @@ public class BookmarkReaderWriter implements ObjectReaderWriter<Kot> {
         }
     }
 
-    public BookmarkReaderWriter(Context context){
+    public BookmarkReaderWriter(Context context, String city){
         this.context=context;
+        this.city = city;
+        this.fullName = BOOKMARKS_FILENAME + "_" + this.city;
     }
 
 }

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="planets_array">
+        <item>Kortrijk</item>
+        <item>Gent</item>
+        <item>Leuven</item>
+        <item>Brugge</item>
+        <item>Brussel</item>
+        <item>Hasselt</item>
+        <item>Antwerpen</item>
+    </string-array>
+</resources>
